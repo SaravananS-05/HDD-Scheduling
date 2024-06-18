@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDD Scheduling</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>HDD Scheduling</h1>
+        <form id="scheduling-form">
+            <label for="initial_position">Initial Position:</label>
+            <input type="number" id="initial_position" name="initial_position" required>
+            
+            <label for="requests">Requests (comma separated):</label>
+            <input type="text" id="requests" name="requests" required>
+            
+            <label for="algorithm">Algorithm:</label>
+            <select id="algorithm" name="algorithm">
+                <option value="fcfs" selected>FCFS</option>
+                <option value="sstf">SSTF</option>
+                <option value="scan">SCAN</option>
+                <option value="c_scan">C-SCAN</option>
+                <option value="look">LOOK</option>
+                <option value="c_look">C-LOOK</option>
+            </select><br><br>
+            
+            <button type="submit">Submit</button>
+        </form>
+        <div id="result"></div>
+        <div id="graph"></div>
+    </div>
+    
+    <script>
+        document.getElementById('scheduling-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const initialPosition = document.getElementById('initial_position').value;
+            const requests = document.getElementById('requests').value.split(',').map(Number);
+            const algorithm = document.getElementById('algorithm').value;
+            
+            const response = await fetch(`/${algorithm}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ initial_position: initialPosition, requests: requests })
+            });
+            
+            const result = await response.json();
+            
+            document.getElementById('result').innerHTML = `
+                <p>Total head movement: ${result.total_head_movement}</p>
+            `;
+            
+            const img = new Image();
+            img.src = 'data:image/png;base64,' + result.graph;
+            document.getElementById('graph').innerHTML = '';
+            document.getElementById('graph').appendChild(img);
+        });
+    </script>
+</body>
+</html>
